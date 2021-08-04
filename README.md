@@ -1,9 +1,13 @@
-# 8088-transaltion-layer
-converts 8088 assembly instructions into python writed functions(like an interpreter)
+# 8088-interpreter
+python 8088 interpreter
 
-#THE PROJECT IS UNCOMPLETED
+# THE PROJECT IS UNCOMPLETED
 
-the main idea was to convert readable 8088 Assembly language and run it simultated in a tiny interpreter
+the main idea was to convert readable 8088 Assembly language into python functons and run the codesimultated into a tiny interpreter
 
-#features
+# whats working
+nothing since 8088 instructions needs to be compiled
 
+# implemented instructions
+
+ADD
