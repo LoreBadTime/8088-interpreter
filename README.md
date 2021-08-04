@@ -29,4 +29,4 @@ BX,SI,DI pointer operations
 SYSCALLS
 ```
 # Why the project stopped?
-Because it started with the goal to have something ready easy to use for an exam,the other project taken over this one
+Because it started with the goal to have something ready easy to use for an exam,the other project taken over this one,since it was more faster and easier to implement. 
