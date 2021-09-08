@@ -37,6 +37,7 @@ download source zip snd unzip
 run interprete8088.py
 chose your file with the "compile" button
 run instructions using "next" button
+a "test.s" file is included in the zip
 ```
 # Why the project stopped?
 Because it started with the goal to have something ready easy to use for an exam,the other project taken over this one,since it was more faster and easier to implement. 
