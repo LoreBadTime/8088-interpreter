@@ -4,7 +4,7 @@ python 8088 interpreter
 # THE PROJECT IS UNCOMPLETED
 
 The main idea is to convert 8088 Assembly language into python native functons
-[impg](https://github.com/LoreBadTime/8088-interpreter/raw/main/translation.png)
+![](https://github.com/LoreBadTime/8088-interpreter/raw/main/translation.png)
 # whats working
 ```
 compiling and executing implemented functions
