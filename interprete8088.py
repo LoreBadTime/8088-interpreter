@@ -4,13 +4,14 @@ from tkinter.filedialog import askopenfilename
 from dataclasses import dataclass
 from functools import partial
 global root,username
-
+global stop
 global registers,run,PC,PCF,instructions,compiled,dbyte,dword,dstring,dbss
 global textbtn
 textbtn = "IR:"
 import re
 filename = ""
 PC = 0
+stop = False
 PCF = 0
 dbss = {}
 dbyte = {}
@@ -22,9 +23,17 @@ class Breg(object):
   def __init__(self,name,x,y):
     self.name = name
     self.nameX = name + "X"
+    if name == "DI":
+      self.nameX = "DI"
+    elif name == "SI":
+      self.nameX = "SI"
+    elif name == "SP":
+      self.nameX = "SP"
+    elif name == "BP":
+      self.nameX = "BP"
     self.nameL = name + "L"
     self.nameH = name + "H"
-    if self.nameX == "BX":
+    if self.nameX == "BX" or self.nameX == "DI" or self.nameX == "SI":
       self.indirizzo = ""
     self.regH = hex(0)
     self.regL = hex(0)
@@ -75,7 +84,10 @@ class Breg(object):
        self.regH = hex(self.regX >> 8)
        self.regL = hex(self.regX - (int(self.regH,base=16) << 8))
     string = ": "
-    self.btnX.config(text=self.nameX + string + str(self.regX),foreground='cyan',activeforeground='cyan')
+    if self.nameX == "SI" or self.nameX == "DI" or self.nameX == "SP" or self.nameX == "BP":
+      self.btnX.config(text=self.nameX + string + str(hex(self.regX)),foreground='cyan',activeforeground='cyan')
+    else:
+      self.btnX.config(text=self.nameX + string + str(self.regX),foreground='cyan',activeforeground='cyan')
     self.btnH.config(text=self.nameH + string + str(self.regH),foreground='cyan',activeforeground='cyan')
     self.btnL.config(text=self.nameL + string + str(self.regL),foreground='cyan',activeforeground='cyan')
     root.update()
@@ -87,7 +99,10 @@ class Breg(object):
     if self.regX > int("0x7fff",base=16):
       self.regX =(256*int(self.regH,base=16) + int(self.regL,base=16)) - int("0xffff",base=16) - 1
     string = ": "
-    self.btnX.config(text=self.nameX + string + str(self.regX),foreground='cyan',activeforeground='cyan')
+    if self.nameX == "SI" or self.nameX == "DI" or self.nameX == "SP" or self.nameX == "BP":
+      self.btnX.config(text=self.nameX + string + str(hex(self.regX)),foreground='cyan',activeforeground='cyan')
+    else:
+      self.btnX.config(text=self.nameX + string + str(self.regX),foreground='cyan',activeforeground='cyan')
     root.update()
   def setRegLvalue(self,inpt):
     self.regL = hex(inpt%(int("0xff",base=16)+1))
@@ -97,7 +112,10 @@ class Breg(object):
     if self.regX > int("0x7fff",base=16):
       self.regX = (256*int(self.regH,base=16) + int(self.regL,base=16)) - int("0xffff",base=16) - 1
     string = ": "
-    self.btnX.config(text=self.nameX + string + str(self.regX),foreground='cyan',activeforeground='cyan')
+    if self.nameX == "SI" or self.nameX == "DI" or self.nameX == "SP" or self.nameX == "BP":
+      self.btnX.config(text=self.nameX + string + str(hex(self.regX)),foreground='cyan',activeforeground='cyan')
+    else:
+      self.btnX.config(text=self.nameX + string + str(self.regX),foreground='cyan',activeforeground='cyan')
     root.update()
   def resetcolors(self):
     self.btnX.config(foreground='white',activeforeground='white')
@@ -109,32 +127,40 @@ class Breg(object):
 root = tk.Tk()
 root.title("8088 interpreter")
 root.configure(background='black')
-root.geometry("450x500")
+root.geometry("720x450")
 root.resizable(True,True)
 
 btnok = tk.Button(root, text="executed instruction", height = 1,width = 32,activebackground='black',background='black',foreground='cyan',activeforeground='cyan')
-btnok.place(x = 40,y = 350)
+btnok.place(x = 460,y = 200)
 btnPC0 = tk.Button(root,highlightthickness = 0, bd = 0, text="", height = 1,width = 32,activebackground='black',background='black',foreground='white',activeforeground='white')
-btnPC0.place(x = 40,y = 330)
+btnPC0.place(x = 460,y = 180)
 btnPC1 = tk.Button(root,highlightthickness = 0, bd = 0, text="", height = 1,width = 32,activebackground='black',background='black',foreground='white',activeforeground='white')
-btnPC1.place(x = 40,y = 310)
+btnPC1.place(x = 460,y = 160)
 btnPC2 = tk.Button(root,highlightthickness = 0, bd = 0, text="", height = 1,width = 32,activebackground='black',background='black',foreground='white',activeforeground='white')
-btnPC2.place(x = 40,y = 375)
+btnPC2.place(x = 460,y = 225)
 btnPC3 = tk.Button(root,highlightthickness = 0, bd = 0, text="", height = 1,width = 32,activebackground='black',background='black',foreground='white',activeforeground='white')
-btnPC3.place(x = 40,y = 395)
+btnPC3.place(x = 460,y = 245)
 btnindicator = tk.Button(root,highlightthickness = 0, bd = 0, text="->", height = 1,width = 1,activebackground='black',background='black',foreground='white',activeforeground='white')
-btnindicator.place(x = 20,y = 350)
+btnindicator.place(x = 440,y = 200)
 btnPC = tk.Button(root,highlightthickness = 0, bd = 0, text=textbtn, height = 1,width = 5,activebackground='black',background='black',foreground='white',activeforeground='white')
-btnPC.place(x = 300,y = 350)
+btnPC.place(x = 400,y = 200)
 btnnext = tk.Button(root,text="next", height = 1,width = 5,activebackground='black',background='black',foreground='cyan',activeforeground='cyan')
-btnnext.place(x = 300,y = 400)
-btncmpile = tk.Button(root,text="compile", height = 1,width = 5,activebackground='black',background='black',foreground='cyan',activeforeground='cyan')
-btncmpile.place(x = 300,y = 435)
-AX = Breg("A",20,80)
-BX = Breg("B",20,120)
-CX = Breg("C",20,160)
-DX = Breg("D",20,200)
-registers = [AX,BX,CX,DX]
+btnnext.place(x = 535,y = 350)
+btnrun = tk.Button(root,text="run", height = 1,width = 4,activebackground='black',background='black',foreground='cyan',activeforeground='cyan')
+btnrun.place(x = 585,y = 350)
+btnstop = tk.Button(root,text="stop", height = 1,width = 4,activebackground='black',background='black',foreground='cyan',activeforeground='cyan')
+btnstop.place(x = 585,y = 380)
+btncmpile = tk.Button(root,text="compile", height = 1,width = 6,activebackground='black',background='black',foreground='cyan',activeforeground='cyan')
+btncmpile.place(x = 480,y = 350)
+DI = Breg("DI",-240,20)
+SI = Breg("SI",-240,60)
+AX = Breg("A",20,120)
+BX = Breg("B",20,160)
+CX = Breg("C",20,200)
+DX = Breg("D",20,240)
+SP = Breg("SP",-240,300)
+BP = Breg("BP",-240,340)
+registers = [AX,BX,CX,DX,DI,SI,SP,BP]
 root.update()
 
 def resetcol():
@@ -164,7 +190,7 @@ def MOVER (Reg,Reg2):
                return
              elif Reg2 == key:
                if Reg == "BH":
-                 x.setindirizzo(key)
+                 x.setindirizzo("dbss")
                x.setRegHvalue(cont)
                return
              cont += 1
@@ -175,7 +201,7 @@ def MOVER (Reg,Reg2):
                return
              elif Reg2 == key:
                if Reg == "BH":
-                 x.setindirizzo(key)
+                 x.setindirizzo("dbyte")
                x.setRegHvalue(cont)
                return
              cont += 1
@@ -205,7 +231,7 @@ def MOVER (Reg,Reg2):
                return
              elif Reg2 == key:
                if Reg == "BL":
-                 x.setindirizzo(key)
+                 x.setindirizzo("dbss")
                x.setRegLvalue(cont)
                return
              cont += 1
@@ -216,7 +242,7 @@ def MOVER (Reg,Reg2):
                return
              elif Reg2 == key:
                if Reg == "BL":
-                 x.setindirizzo(key)
+                 x.setindirizzo("dbyte")
                x.setRegLvalue(cont)
                return
              cont += 1
@@ -246,7 +272,7 @@ def MOVER (Reg,Reg2):
                return
              elif Reg2 == key:
                if Reg == "BX":
-                 x.setindirizzo(key)
+                 x.setindirizzo("dbss")
                x.setRegXvalue(cont)
                return
              cont += 1
@@ -257,7 +283,7 @@ def MOVER (Reg,Reg2):
                return
              elif Reg2 == key:
                if Reg == "BX":
-                 x.setindirizzo(key)
+                 x.setindirizzo("dbyte")
                x.setRegXvalue(cont)
                return
              cont += 1
@@ -268,12 +294,16 @@ def MOVER (Reg,Reg2):
                return
              elif Reg2 == key:
                if Reg == "BX":
-                 x.setindirizzo(key)
+                 x.setindirizzo("dword")
                x.setRegXvalue(cont)
                return
              cont += 1
            x.setRegXvalue(int(Reg2))
            return
+#pointer operations
+          
+       # elif Reg == "(BX)(DI)":
+          
 #variabili MOV
     for key,value in dbyte.items():
        x = key
@@ -784,8 +814,40 @@ def main(inpt):
         print(PC)
         print(PCF)
         print(compiled)
+def run(inpt):
+    global stop,PC,PCF,textbtn,compiled,btnok,btnPC,btnPC1,btnPC2,btnPC3,btnPC0,instructions,instructionsprint,root
+    if inpt == 1 and PC <= PCF and compiled == True:
+          while PC <= PCF and stop == False:
+              if type(instructions[PC]) == str:
+                if instructions[PC][0] == "G" and instructions[PC][1] == "O" and instructions[PC][2] == "T" and instructions[PC][3] == "O":
+                     tmp = ""
+                     for x in range(5,len(instructions[PC]),1):
+                        tmp = tmp + instructions[PC][x]
+                     GOTO(tmp)
+              else:
+                  resetcol()
+                  instructions[PC]()
+              PC = PC + 1
+              btnok.config(text=instructionsprint[PC])
+              btnPC.config(text = textbtn + str(PC))
+              btnPC0.config(text=instructionsprint[PC - 1])
+              btnPC1.config(text=instructionsprint[PC - 2])
+              btnPC2.config(text=instructionsprint[PC + 1])
+              btnPC3.config(text=instructionsprint[PC + 2])
+              root.update()
+    else:
+        print(inpt)
+        print(PC)
+        print(PCF)
+        print(compiled)
+    stop = False
+def stopper():
+  global stop
+  stop = True
 btnnext.configure(command = lambda:main(1))
 btncmpile.configure(command = lambda:main(0))
+btnrun.configure(command = lambda:run(1))
+btnstop.configure(command = lambda:stopper())
 root.mainloop()
        
 
