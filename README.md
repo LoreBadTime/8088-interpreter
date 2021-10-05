@@ -13,11 +13,11 @@ data section(instructions still cant use it now)
 # Implemented instructions
 ```
 (Byte variants are  included)
-MOV(working)
+MOV(working on registers,and variables)
 ADD(needs more testing)
 SUB(needs more testing)
 MUL(untested)
-GOTO/JMP(working)
+JMP(fully working)
 ```
 # Easily implementable instructions
 ```
