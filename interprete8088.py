@@ -5,13 +5,14 @@ from dataclasses import dataclass
 from functools import partial
 global root,username
 
-global registers,run,PC,PCF,instructions,compiled,dbyte,dword,dstring
+global registers,run,PC,PCF,instructions,compiled,dbyte,dword,dstring,dbss
 global textbtn
 textbtn = "IR:"
 import re
 filename = ""
 PC = 0
 PCF = 0
+dbss = {}
 dbyte = {}
 dword = {}
 dstring = {}
@@ -23,6 +24,8 @@ class Breg(object):
     self.nameX = name + "X"
     self.nameL = name + "L"
     self.nameH = name + "H"
+    if self.nameX == "BX":
+      self.indirizzo = ""
     self.regH = hex(0)
     self.regL = hex(0)
     self.regX = 0
@@ -100,7 +103,8 @@ class Breg(object):
     self.btnX.config(foreground='white',activeforeground='white')
     self.btnH.config(foreground='white',activeforeground='white')
     self.btnL.config(foreground='white',activeforeground='white')
-    
+  def setindirizzo(self,string):
+    self.indirizzo = string 
     
 root = tk.Tk()
 root.title("8088 interpreter")
@@ -139,8 +143,9 @@ def resetcol():
     element.resetcolors()
 
 def MOVER (Reg,Reg2):
-    global registers
+    global registers,dbyte,dword,dbss
     for x in registers:
+# registo H _____________________________________________________________      
         if Reg == x.nameH:
            for y in registers:
                if Reg2 == y.nameH:
@@ -150,12 +155,40 @@ def MOVER (Reg,Reg2):
                    x.setRegHvalue(int(y.regL,base=16))
                    return
                elif Reg2 == y.nameX:
-                   print("REGISTER ERROR")
+                   print("REGISTER ERROR,WORD IN BYTE:" + Reg + Reg2)
                    return
+           cont = 0
+           for key, value in dbss.items():
+             if Reg2 == "(" + key + ")":
+               x.setRegHvalue(int(value))
+               return
+             elif Reg2 == key:
+               if Reg == "BH":
+                 x.setindirizzo(key)
+               x.setRegHvalue(cont)
+               return
+             cont += 1
+           cont = 0
+           for key, value in dbyte.items():
+             if Reg2 == "(" + key + ")":
+               x.setRegHvalue(int(value))
+               return
+             elif Reg2 == key:
+               if Reg == "BH":
+                 x.setindirizzo(key)
+               x.setRegHvalue(cont)
+               return
+             cont += 1
+           cont = 0
+           for key, value in dword.items():
+             if Reg2 == key:
+               print("REGISTER ERROR,WORD IN BYTE:" + Reg + Reg2)
+               return
            x.setRegHvalue(int(Reg2))
            return
+# registo L _____________________________________________________________ 
         elif Reg == x.nameL:
-            for y in registers:
+           for y in registers:
                if Reg2 == y.nameH:
                    x.setRegLvalue(int(y.regH,base=16))
                    return
@@ -163,12 +196,40 @@ def MOVER (Reg,Reg2):
                    x.setRegLvalue(int(y.regL,base=16))
                    return
                elif Reg2 == y.nameX:
-                   print("REGISTER ERROR")
+                   print("REGISTER ERROR,WORD IN BYTE:" + Reg + Reg2)
                    return
-            x.setRegLvalue(int(Reg2))
-            return
+           cont = 0
+           for key, value in dbss.items():
+             if Reg2 == "(" + key + ")":
+               x.setRegLvalue(int(value))
+               return
+             elif Reg2 == key:
+               if Reg == "BL":
+                 x.setindirizzo(key)
+               x.setRegLvalue(cont)
+               return
+             cont += 1
+           cont = 0
+           for key, value in dbyte.items():
+             if Reg2 == "(" + key + ")":
+               x.setRegLvalue(int(value))
+               return
+             elif Reg2 == key:
+               if Reg == "BL":
+                 x.setindirizzo(key)
+               x.setRegLvalue(cont)
+               return
+             cont += 1
+           cont = 0
+           for key, value in dword.items():
+             if Reg2 == key:
+               print("REGISTER ERROR,WORD IN BYTE:" + Reg + Reg2)
+               return
+             x.setRegLvalue(int(Reg2))
+             return
+# registo X _____________________________________________________________ 
         elif Reg == x.nameX:
-            for y in registers:
+           for y in registers:
                if Reg2 == y.nameH:
                    x.setRegXvalue(int(y.regH,base=16))
                    return
@@ -176,17 +237,92 @@ def MOVER (Reg,Reg2):
                    x.setRegXvalue(int(y.regL,base=16))
                    return
                elif Reg2 == y.nameX:
-                   x.setRegXvalue(y.regX)
+                   x.setRegXvalue(int(y.regX))
                    return
-            x.setRegXvalue(int(Reg2))
-            return
-          
+           cont = 0
+           for key, value in dbss.items():
+             if Reg2 == "(" + key + ")":
+               x.setRegXvalue(int(value))
+               return
+             elif Reg2 == key:
+               if Reg == "BX":
+                 x.setindirizzo(key)
+               x.setRegXvalue(cont)
+               return
+             cont += 1
+           cont = 0
+           for key, value in dbyte.items():
+             if Reg2 == "(" + key + ")":
+               x.setRegXvalue(int(value))
+               return
+             elif Reg2 == key:
+               if Reg == "BX":
+                 x.setindirizzo(key)
+               x.setRegXvalue(cont)
+               return
+             cont += 1
+           cont = 0
+           for key, value in dword.items():
+             if Reg2 == "(" + key + ")":
+               x.setRegXvalue(int(value))
+               return
+             elif Reg2 == key:
+               if Reg == "BX":
+                 x.setindirizzo(key)
+               x.setRegXvalue(cont)
+               return
+             cont += 1
+           x.setRegXvalue(int(Reg2))
+           return
+#variabili MOV
+    for key,value in dbyte.items():
+       x = key
+       if x == Reg:
+         for y in registers:
+           if Reg2 == y.nameH:
+             dbyte[key] = int(y.regH,base=16)
+             return
+           elif Reg2 == y.nameL:
+             dbyte[key] = int(y.regL,base=16)
+             return
+           elif Reg2 == y.nameX:
+             print("REGISTER ERROR,WORD IN BYTE:" + Reg + Reg2)
+             return
+         dbyte[key] = int(Reg2) 
+    for key,value in dbss.items():
+       x = key
+       if x == Reg:
+         for y in registers:
+           if Reg2 == y.nameH:
+             dbss[key] = int(y.regH,base=16)
+             return
+           elif Reg2 == y.nameL:
+             dbss[key] = int(y.regL,base=16)
+             return
+           elif Reg2 == y.nameX:
+             print("REGISTER ERROR,WORD IN BYTE:" + Reg + Reg2)
+             return
+         dbss[key] = int(Reg2)  
+    for key,value in dword.items():
+       x = key
+       if x == Reg:
+         for y in registers:
+           if Reg2 == y.nameH:
+             dword[key] = int(y.regH,base=16)
+             return
+           elif Reg2 == y.nameL:
+             dword[key] = int(y.regL,base=16)
+             return
+           elif Reg2 == y.nameX:
+             dword[key] = int(y.regX,base=16)
+             return         
+         dword[key] = int(Reg2)      
 def MOV (Reg,Reg2):
     global PC
     MOVER(Reg,Reg2)
     root.update()
     return object
-  
+##CALL RET  
 def ADDER (Reg,Reg2):
     global registers
     for x in registers:
@@ -503,6 +639,7 @@ def compiler():
                 while line[count].isdigit() != True:
                   count += 1
                 getdata = ""
+                datacounter = 0
                 while count < len(line):
                   if line[count] != " " and line[count] != '\n' and line[count] != '"':#??? why this happens idk
                     if line[count] != ",":
@@ -511,13 +648,14 @@ def compiler():
                       if len(tmpdict) == 0:
                         tmpdict[str(varname)] = int(getdata)
                       else:
-                        tmpdict[str(varname) + str(count)] = int(getdata)
+                        tmpdict[str(varname) + "." + str(datacounter)] = int(getdata)
                       getdata = ""
+                      datacounter += 1
                   count += 1
                 if len(tmpdict) == 0:
                         tmpdict[str(varname)] = int(getdata)
                 else:
-                        tmpdict[str(varname) + str(count)] = int(getdata)
+                        tmpdict[str(varname) + "." + str(datacounter)] = int(getdata)
               else:
                 count = 0
                 tmpdict = {}
@@ -535,9 +673,57 @@ def compiler():
                 dword.update(tmpdict)
               elif string == True:
                 dstring.update(tmpdict)
-              
-          
-
+          elif data == True and code == True :
+            if ".SECT .BSS" in line or line == '\n':
+              pass
+            else:  
+              tmpdict = {}
+              count = 0
+              varname = ""
+              string = False
+              if ".SPACE" in line:
+                byte = True
+              for letter in line:
+                count += 1
+                if letter == " ":
+                  pass
+                elif letter == ":":
+                  break
+                else:
+                  varname += letter
+              if string != True: 
+                while line[count].isdigit() != True:
+                  count += 1
+                getdata = ""
+                while count < len(line):
+                  if line[count] != " " and line[count] != '\n' and line[count] != '"':#??? why this happens idk
+                    if line[count] != ",":
+                      getdata += line[count]
+                    else:
+                      if len(tmpdict) == 0:
+                        tmpdict[str(varname)] = int(getdata)
+                      else:
+                        tmpdict[str(varname) + "." + str(count)] = int(getdata)
+                      getdata = ""
+                  count += 1
+                if len(tmpdict) == 0:
+                        tmpdict[str(varname)] = int(getdata)
+                else:
+                        tmpdict[str(varname) + "." + str(count)] = int(getdata)            
+                dbss.update(tmpdict)
+    tmpdict = {}
+    for key, value in dbss.items():
+      tmpvalue = value
+      if value > 1:
+        dbss[key] = 0
+        cont = 1
+        tmpvalue = value
+        while cont < tmpvalue:
+          tmpdict[str(key) + "." + str(cont)] = 0
+          cont+= 1
+      elif value == 1:
+        dbss[key] = 0
+    dbss.update(tmpdict)
     instructionsprint.append("")          
     instructions.append(partial(NOP))
     instructionsprint.append("")          
@@ -560,6 +746,8 @@ def compiler():
     print(dword)
     print("ASCII MEMORY")
     print(dstring)
+    print("BSS MEMORY")
+    print(dbss)
 def main(inpt):
     global PC,PCF,textbtn,compiled,btnok,btnPC,btnPC1,btnPC2,btnPC3,btnPC0,instructions,instructionsprint,root
     if inpt == 0:
@@ -596,7 +784,6 @@ def main(inpt):
         print(PC)
         print(PCF)
         print(compiled)
-        
 btnnext.configure(command = lambda:main(1))
 btncmpile.configure(command = lambda:main(0))
 root.mainloop()

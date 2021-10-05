@@ -29,7 +29,7 @@ label:
    MOVB AL, 32
    MOVB BH, AL
    MOVB CL, BH
-   MOV DX, CL
+   MOVB DH, CL
    ADD AX, BX
    JMP label
    CALL _EXIT
