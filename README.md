@@ -3,30 +3,41 @@ python 8088 interpreter
 
 # THE PROJECT IS UNCOMPLETED
 
-the main idea was to convert 8088 Assembly language into python functons and run the code into a tiny interpreter
-
-# whats working
-nothing since 8088 instructions needs to be compiled
-
-# implemented instructions
+The main idea is to convert 8088 Assembly language into python native functons
+![](https://github.com/LoreBadTime/8088-interpreter/raw/main/translation.png)
+# Whats working
 ```
-MOV(Byte instuctions are included in MOV since the interpreter can recognise registers)
-ADD
-SUB
-GOTO/JMP
+compiling and executing implemented functions
+data section(instructions still cant use it now)
+```
+# Implemented instructions
+```
+(Byte variants are  included)
+MOV(working)
+ADD(needs more testing)
+SUB(needs more testing)
+MUL(untested)
+GOTO/JMP(working)
 ```
 # Easily implementable instructions
 ```
-MUL
-DIV
+math operations
 BOOLEAN basic operations
 ```
 # Harder to implement
 ```
-PUSH 
-POP
+STACK operations
 BX,SI,DI pointer operations
 SYSCALLS
+fuctions/procedures
+```
+# How to use
+```
+download source zip snd unzip
+run interprete8088.py
+chose your file with the "compile" button
+run instructions using "next" button
+a "test.s" file is included in the zip
 ```
 # Why the project stopped?
 Because it started with the goal to have something ready easy to use for an exam,the other project taken over this one,since it was more faster and easier to implement. 
